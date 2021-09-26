@@ -4,12 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/fatih/color"
 )
@@ -32,21 +30,30 @@ func check(err error, where string) {
 }
 
 func examine(cmdIn io.WriteCloser, arch string, v string) {
-	cmdIn.Write([]byte("examine /switch/a"))
-	cmdIn.Close()
+	io.WriteString(cmdIn, "examine /switch/a\n")
+}
+
+func ReadOutput(output chan string, rc io.ReadCloser) {
+	r := bufio.NewReader(rc)
+	for {
+		x, _ := r.ReadString('\n')
+		output <- string(x)
+	}
 }
 
 func main() {
 	color.Green("Starting Orus...")
 	//Make the lib at work
-	vlib_out, _ := exec.Command("cmd", "/C", "vlib work").Output()
+	vlib_out, err := exec.Command("cmd", "/C", "vlib work").Output()
+	check(err, "vlib work")
 	if log_stats {
 		fmt.Println(string(vlib_out))
 		color.Green("vlib done.")
 	}
 
 	//vcom path
-	vcom_out, _ := exec.Command("cmd", "/C", "vcom -work work -2002 -explicit -stats=none", test_path).Output()
+	vcom_out, err := exec.Command("cmd", "/C", "vcom -work work -2002 -explicit -stats=none", test_path).Output()
+	check(err, "vcom")
 	if log_stats {
 		fmt.Println(string(vcom_out))
 		color.Green("vcom done.")
@@ -56,6 +63,7 @@ func main() {
 	if log_stats {
 		color.Cyan("Starting vsim...")
 	}
+
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -63,20 +71,19 @@ func main() {
 		color.Cyan("Closing vsim...")
 		os.Exit(1)
 	}()
+
 	vsim := exec.Command("cmd", "/C", "vsim -c work.switch")
 	vsimIn, _ := vsim.StdinPipe()
 	vsimOut, _ := vsim.StdoutPipe()
-	buf := bufio.NewReader(vsimOut)
-	vsim.Start()
-	for {
-		line, _, _ := buf.ReadLine()
-		fmt.Println(string(line))
-		examine(vsimIn, "switch", "a")
-		// examine(vsimIn, "switch", "b")
-		vsimBytes, _ := ioutil.ReadAll(vsimOut)
-		time.Sleep(100 * time.Millisecond)
-		fmt.Println(string(vsimBytes))
-		vsim.Wait()
-	}
 
+	vsim.Start()
+	go examine(vsimIn, "switch", "a")
+
+	output := make(chan string)
+	defer close(output)
+	go ReadOutput(output, vsimOut)
+
+	for o := range output {
+		fmt.Println(o)
+	}
 }
