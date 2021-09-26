@@ -4,3 +4,8 @@ Orus makes debugging vhdl with IntelModel Sim easier, you can do it right from t
 
 ## Requirements: 
 1. Have Intel ModelSim installed
+
+
+## How to run:
+
+`go run .`
