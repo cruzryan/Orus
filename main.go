@@ -18,8 +18,29 @@ var (
 	log_stats  = true
 )
 
-func truthTable() {
+func printSig(col color.Attribute, sig, val string) {
+	color.Set(col)
+	fmt.Println(sig + " | " + val)
+	color.Unset()
+}
 
+func truthTable(vals, sigs []string) {
+	// sigs := []string{"A", "B", "C"}
+	// vals := []string{"0", "1", "U"}
+
+	for i := 0; i < len(sigs); i++ {
+		switch vals[i] {
+		case "0":
+			printSig(color.FgRed, sigs[i], vals[i])
+			break
+		case "1":
+			printSig(color.FgGreen, sigs[i], vals[i])
+			break
+		case "U":
+			printSig(color.FgYellow, sigs[i], vals[i])
+			break
+		}
+	}
 }
 
 func check(err error, where string) {
@@ -59,11 +80,7 @@ func main() {
 		color.Green("vcom done.")
 	}
 
-	//start vsim subprocess
-	if log_stats {
-		color.Cyan("Starting vsim...")
-	}
-
+	//Close program when user hits CTRL+C
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -71,6 +88,11 @@ func main() {
 		color.Cyan("Closing vsim...")
 		os.Exit(1)
 	}()
+
+	//start vsim
+	if log_stats {
+		color.Cyan("Starting vsim...")
+	}
 
 	vsim := exec.Command("cmd", "/C", "vsim -c work.switch")
 	vsimIn, _ := vsim.StdinPipe()
@@ -82,7 +104,6 @@ func main() {
 	output := make(chan string)
 	defer close(output)
 	go ReadOutput(output, vsimOut)
-
 	for o := range output {
 		fmt.Println(o)
 	}
