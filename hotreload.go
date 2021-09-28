@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -38,12 +37,11 @@ func watch() {
 						defer wg.Done()
 					}()
 					wg.Wait()
-					fmt.Println("--------- WAITING DONDE --------")
 					restartVsim()
 					run()
-					examine("switch", "a")
-					examine("switch", "b")
-					examine("switch", "f")
+					//Analyze file
+					analyze()
+					examineAll()
 					truthTable()
 				}
 			case err, ok := <-watcher.Errors:

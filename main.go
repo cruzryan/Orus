@@ -22,13 +22,15 @@ var (
 
 	examine_in_process = false
 	var_to_examine     = ""
+	current_entity     = ""
 )
 
 var vhdl_vars []VHDL_VAR
 
 type VHDL_VAR struct {
-	name  string
-	value string
+	name   string
+	value  string
+	entity string
 }
 
 func printSig(col color.Attribute, sig, val string) {
@@ -63,6 +65,12 @@ func check(err error, where string) {
 
 func examine(arch string, v string) {
 	io.WriteString(vsim_writer, "examine /"+arch+"/"+v+"\n")
+}
+
+func examineAll() {
+	for i := 0; i < len(vhdl_vars); i++ {
+		examine(vhdl_vars[i].entity, vhdl_vars[i].name)
+	}
 }
 
 func ReadOutput(output chan string, rc io.ReadCloser) {
@@ -126,6 +134,7 @@ func startVsim() {
 					}
 				}
 				if !found {
+					fmt.Println("------------ADDED, SZ : ", len(vhdl_vars))
 					vhdl_vars = append(vhdl_vars, VHDL_VAR{name: var_to_examine, value: string(o[2])})
 				}
 			}
@@ -168,6 +177,9 @@ func compile() {
 func main() {
 
 	color.Green("Starting Orus...")
+
+	//Analyze file
+	analyze()
 
 	//Hot reload file watching
 	go watch()
