@@ -7,9 +7,11 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/fatih/color"
+	"github.com/go-p5/p5"
 )
 
 var (
@@ -17,7 +19,17 @@ var (
 	path        = "C:/Users/rncb0/Code/VHDL/hw17.vhd"
 	log_stats   = true
 	vsim_writer io.WriteCloser
+
+	examine_in_process = false
+	var_to_examine     = ""
 )
+
+var vhdl_vars []VHDL_VAR
+
+type VHDL_VAR struct {
+	name  string
+	value string
+}
 
 func printSig(col color.Attribute, sig, val string) {
 	color.Set(col)
@@ -25,20 +37,18 @@ func printSig(col color.Attribute, sig, val string) {
 	color.Unset()
 }
 
-func truthTable(vals, sigs []string) {
-	// sigs := []string{"A", "B", "C"}
-	// vals := []string{"0", "1", "U"}
-
-	for i := 0; i < len(sigs); i++ {
-		switch vals[i] {
+func truthTable() {
+	fmt.Println("VLENGTH: ", len(vhdl_vars))
+	for i := 0; i < len(vhdl_vars); i++ {
+		switch vhdl_vars[i].value {
 		case "0":
-			printSig(color.FgRed, sigs[i], vals[i])
+			printSig(color.FgRed, vhdl_vars[i].name, vhdl_vars[i].value)
 			break
 		case "1":
-			printSig(color.FgGreen, sigs[i], vals[i])
+			printSig(color.FgGreen, vhdl_vars[i].name, vhdl_vars[i].value)
 			break
-		case "U":
-			printSig(color.FgYellow, sigs[i], vals[i])
+		default:
+			printSig(color.FgYellow, vhdl_vars[i].name, vhdl_vars[i].value)
 			break
 		}
 	}
@@ -52,7 +62,7 @@ func check(err error, where string) {
 }
 
 func examine(arch string, v string) {
-	io.WriteString(vsim_writer, "examine /switch/a\n")
+	io.WriteString(vsim_writer, "examine /"+arch+"/"+v+"\n")
 }
 
 func ReadOutput(output chan string, rc io.ReadCloser) {
@@ -96,24 +106,63 @@ func startVsim() {
 	output := make(chan string)
 	defer close(output)
 	go ReadOutput(output, vsimOut)
+
 	for o := range output {
 		if len(o) > 0 {
+
+			if strings.Contains(o, "examine") {
+				examine_in_process = true
+				var_to_examine = strings.TrimSuffix(strings.Split(o, "/")[2], "\n")
+				// color.Red("EXAMINE")
+			}
+
+			if examine_in_process && o[0] == '#' {
+				examine_in_process = false
+				found := false
+				for i := 0; i < len(vhdl_vars); i++ {
+					if vhdl_vars[i].name == var_to_examine {
+						vhdl_vars[i].value = string(o[2])
+						found = true
+					}
+				}
+				if !found {
+					vhdl_vars = append(vhdl_vars, VHDL_VAR{name: var_to_examine, value: string(o[2])})
+				}
+			}
 			fmt.Println(o)
 		}
 	}
 }
 
 func stopVsim() {
+	color.Red("Stopping vsim!")
 	io.WriteString(vsim_writer, "exit\n")
 }
 
-func compileAndRun() {
+func restartVsim() {
+	color.Red("Restarting vsim!")
+	//Reset values
+	vhdl_vars = nil
+	io.WriteString(vsim_writer, "restart\n")
+}
+
+func run() {
+	color.Red("Running!")
+	// io.WriteString(vsim_writer, "force -freeze sim:/switch/A 0 0\n")
+	// io.WriteString(vsim_writer, "force -freeze sim:/switch/B 1 0\n")
+	io.WriteString(vsim_writer, "run\n")
+}
+
+func compile() {
+
+	//Reset values
+	vhdl_vars = nil
+
 	//Make the lib at work
-	vlib()
+	go vlib()
 	//vcom compile path
-	vcom()
-	//start vsim
-	// startVsim()
+	go vcom()
+
 }
 
 func main() {
@@ -128,10 +177,10 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
-		color.Cyan("Closing vsim...")
+		color.Cyan("Closing Orus...")
 		os.Exit(1)
 	}()
-
-	compileAndRun()
+	compile()
+	go p5.Run(setup, draw)
 	startVsim()
 }

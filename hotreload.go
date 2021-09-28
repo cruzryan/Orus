@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/fatih/color"
 
@@ -29,10 +31,20 @@ func watch() {
 				}
 				log.Println("event:", event)
 				if event.Op&fsnotify.Write == fsnotify.Write {
-					// log.Println("modified file:", event.Name)
-					// stopVsim()
-					compileAndRun()
+					var wg sync.WaitGroup
+					wg.Add(1)
+					go func() {
+						compile()
+						defer wg.Done()
+					}()
+					wg.Wait()
+					fmt.Println("--------- WAITING DONDE --------")
+					restartVsim()
+					run()
 					examine("switch", "a")
+					examine("switch", "b")
+					examine("switch", "f")
+					truthTable()
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
