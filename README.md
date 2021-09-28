@@ -14,4 +14,4 @@ Orus makes debugging vhdl with IntelModel Sim easier, you can do it right from t
 ## Bugs
 
 1. You need to save your file twice for Orus to update the signals
-2. Takes ~2s to compile and run. How do we make it run faster?
+2. Takes ~1s to compile and run. How do we make it run faster?
