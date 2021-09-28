@@ -42,6 +42,7 @@ func analyze() {
 				}
 			}
 
+			total_vars += 1
 			found := false
 
 			for i := 0; i < len(vhdl_vars); i++ {

@@ -23,6 +23,7 @@ var (
 	examine_in_process = false
 	var_to_examine     = ""
 	current_entity     = ""
+	total_vars         = 0
 )
 
 var vhdl_vars []VHDL_VAR
@@ -121,14 +122,13 @@ func startVsim() {
 			if strings.Contains(o, "examine") {
 				examine_in_process = true
 				var_to_examine = strings.TrimSuffix(strings.Split(o, "/")[2], "\n")
-				// color.Red("EXAMINE")
 			}
 
 			if examine_in_process && o[0] == '#' {
 				examine_in_process = false
 				found := false
 				for i := 0; i < len(vhdl_vars); i++ {
-					if vhdl_vars[i].name == var_to_examine {
+					if vhdl_vars[i].name == var_to_examine[:len(var_to_examine)-1] {
 						vhdl_vars[i].value = string(o[2])
 						found = true
 					}

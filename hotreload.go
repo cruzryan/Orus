@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -38,11 +39,20 @@ func watch() {
 					}()
 					wg.Wait()
 					restartVsim()
-					run()
-					//Analyze file
+					total_vars = 0
 					analyze()
+					run()
 					examineAll()
-					truthTable()
+					for len(vhdl_vars) != total_vars {
+						//Analyze file
+						// run()
+						examineAll()
+						truthTable()
+						fmt.Println(len(vhdl_vars), total_vars)
+						fmt.Println("TOTAL VARS: ", total_vars)
+						// vhdl_vars = vhdl_vars[total_vars:]
+						vhdl_vars = vhdl_vars[:total_vars]
+					}
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
