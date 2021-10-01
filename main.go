@@ -16,7 +16,7 @@ import (
 
 var (
 	win32_path  = "C:\\intelFPGA\\20.1\\modelsim_ase\\win32aloem\\"
-	path        = "C:/Users/rncb0/Code/VHDL/hw17.vhd"
+	path        = ""
 	log_stats   = true
 	vsim_writer io.WriteCloser
 
@@ -177,6 +177,8 @@ func compile() {
 func main() {
 
 	color.Green("Starting Orus...")
+
+	path = os.Args[1]
 
 	//Analyze file
 	analyze()

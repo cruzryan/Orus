@@ -11,6 +11,14 @@ Orus makes debugging vhdl with IntelModel Sim easier, you can do it right from t
 
 `go run .`
 
+From executable:
+
+`Orus.exe [file you want to run]`
+
+Example:
+
+`Orus.exe C:/Users/rncb0/Code/VHDL/hw17.vhd`
+
 ## Bugs
 
 1. You need to save your file twice for Orus to update the signals
