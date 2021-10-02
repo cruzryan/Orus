@@ -105,7 +105,7 @@ func startVsim() {
 		color.Cyan("Starting vsim...")
 	}
 
-	vsim := exec.Command("cmd", "/C", "vsim -c work.switch")
+	vsim := exec.Command("cmd", "/C", "vsim -c work." + arch)
 	vsimIn, _ := vsim.StdinPipe()
 	vsimOut, _ := vsim.StdoutPipe()
 	vsim_writer = vsimIn
