@@ -17,6 +17,10 @@ func drawTruthTable() {
 
 func draw() {
 
+	if len(vhdl_vars) == 0 {
+		p5.Text("Please re-load the file to compile!", 30, float64(40)+40)
+	}
+
 	for i := 0; i < len(vhdl_vars); i++ {
 
 		p5.TextSize(24)
