@@ -23,3 +23,4 @@ Example:
 
 1. You need to save your file twice for Orus to update the signals
 2. Takes ~1s to compile and run. How do we make it run faster?
+3. STD_LOGIC_VECTOR does not work! I will fix it soon
