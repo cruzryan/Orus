@@ -45,12 +45,10 @@ func watch() {
 					examineAll()
 					for len(vhdl_vars) != total_vars {
 						//Analyze file
-						// run()
 						examineAll()
 						truthTable()
 						fmt.Println(len(vhdl_vars), total_vars)
 						fmt.Println("TOTAL VARS: ", total_vars)
-						// vhdl_vars = vhdl_vars[total_vars:]
 						vhdl_vars = vhdl_vars[:total_vars]
 					}
 				}

@@ -15,7 +15,6 @@ func analyze() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	// optionally, resize scanner's capacity for lines over 64K, see next example
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.Contains(line, "entity") {
@@ -60,8 +59,6 @@ func analyze() {
 				vhdl_vars = append(vhdl_vars, VHDL_VAR{name: name, value: string(val), entity: current_entity})
 			}
 		}
-
-		// fmt.Println(scanner.Text())
 	}
 
 	if err := scanner.Err(); err != nil {

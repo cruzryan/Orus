@@ -15,7 +15,6 @@ import (
 )
 
 var (
-	win32_path  = "C:\\intelFPGA\\20.1\\modelsim_ase\\win32aloem\\"
 	path        = ""
 	log_stats   = true
 	vsim_writer io.WriteCloser
@@ -134,7 +133,6 @@ func startVsim() {
 					}
 				}
 				if !found {
-					fmt.Println("------------ADDED, SZ : ", len(vhdl_vars))
 					vhdl_vars = append(vhdl_vars, VHDL_VAR{name: var_to_examine, value: string(o[2])})
 				}
 			}
@@ -157,8 +155,6 @@ func restartVsim() {
 
 func run() {
 	color.Red("Running!")
-	// io.WriteString(vsim_writer, "force -freeze sim:/switch/A 0 0\n")
-	// io.WriteString(vsim_writer, "force -freeze sim:/switch/B 1 0\n")
 	io.WriteString(vsim_writer, "run\n")
 }
 
